@@ -1,0 +1,57 @@
+<div class="mb-4">
+  <h2>안녕하세요, <%= user ? user.name : '' %> 님</h2>
+  <p class="text-muted">오늘과 이번 주 마감 과제를 확인하세요.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">오늘 할 일</div>
+      <ul class="list-group list-group-flush">
+        <% if (todayTasks && todayTasks.length) { %>
+          <% todayTasks.forEach(task => { %>
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= task.title %></strong>
+                <% if (task.course_name) { %>
+                  <span class="badge bg-secondary ms-2"><%= task.course_name %></span>
+                <% } %>
+                <div class="small text-muted">우선순위: <%= task.priority %></div>
+              </div>
+              <span class="badge bg-warning text-dark"><%= task.status %></span>
+            </div>
+          </li>
+          <% }) %>
+        <% } else { %>
+          <li class="list-group-item text-center text-muted">오늘 마감 과제가 없습니다.</li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">이번 주 마감 과제</div>
+      <ul class="list-group list-group-flush">
+        <% if (weekTasks && weekTasks.length) { %>
+          <% weekTasks.forEach(task => { %>
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= task.title %></strong>
+                <% if (task.course_name) { %>
+                  <span class="badge bg-secondary ms-2"><%= task.course_name %></span>
+                <% } %>
+                <div class="small text-muted">마감일: <%= task.due_date || '-' %></div>
+              </div>
+              <span class="badge bg-warning text-dark">미완료</span>
+            </div>
+          </li>
+          <% }) %>
+        <% } else { %>
+          <li class="list-group-item text-center text-muted">이번 주 마감 과제가 없습니다.</li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</div>

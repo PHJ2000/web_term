@@ -1,0 +1,73 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>작업 관리</h3>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header">작업 목록</div>
+      <ul class="list-group list-group-flush">
+        <% if (tasks && tasks.length) { %>
+          <% tasks.forEach(task => { %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <strong><%= task.title %></strong>
+              <% if (task.course_name) { %>
+                <span class="badge bg-secondary ms-2"><%= task.course_name %></span>
+              <% } %>
+              <div class="small text-muted">
+                마감일: <%= task.due_date || '-' %> | 우선순위: <%= task.priority %> | 상태:
+                <%= task.status %>
+              </div>
+            </div>
+            <% if (task.status === 'pending') { %>
+            <form method="POST" action="/tasks/<%= task.id %>/complete">
+              <button class="btn btn-sm btn-success">완료</button>
+            </form>
+            <% } else { %>
+              <span class="badge bg-success">완료됨</span>
+            <% } %>
+          </li>
+          <% }) %>
+        <% } else { %>
+          <li class="list-group-item text-center text-muted">등록된 작업이 없습니다.</li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header">작업 추가</div>
+      <div class="card-body">
+        <form method="POST" action="/tasks">
+          <div class="mb-3">
+            <label class="form-label">제목</label>
+            <input type="text" name="title" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">설명</label>
+            <textarea name="description" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">마감일</label>
+            <input type="date" name="due_date" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">우선순위 (1=높음, 2=보통, 3=낮음)</label>
+            <input type="number" min="1" max="3" name="priority" class="form-control" value="2" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">강의 연결 (선택)</label>
+            <select name="course_id" class="form-select">
+              <option value="">선택 안 함</option>
+              <% courses.forEach(course => { %>
+                <option value="<%= course.id %>"><%= course.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">추가</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>나의 강의</h3>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card shadow-sm">
+      <div class="card-header">강의 목록</div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>교수님</th>
+              <th>요일</th>
+              <th>시간</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (courses && courses.length) { %>
+              <% courses.forEach(course => { %>
+              <tr>
+                <td><%= course.name %></td>
+                <td><%= course.professor || '-' %></td>
+                <td><%= course.day_of_week !== null ? ['일','월','화','수','목','금','토'][course.day_of_week] : '-' %></td>
+                <td>
+                  <% if (course.start_time && course.end_time) { %>
+                    <%= course.start_time %> - <%= course.end_time %>
+                  <% } else { %>
+                    -
+                  <% } %>
+                </td>
+              </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="4" class="text-center text-muted">등록된 강의가 없습니다.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-header">강의 추가</div>
+      <div class="card-body">
+        <form method="POST" action="/courses">
+          <div class="mb-3">
+            <label class="form-label">강의명</label>
+            <input type="text" name="name" class="form-control" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">교수님</label>
+            <input type="text" name="professor" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">요일 (0=일 ... 6=토)</label>
+            <input type="number" min="0" max="6" name="day_of_week" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">시작 시간</label>
+            <input type="time" name="start_time" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">종료 시간</label>
+            <input type="time" name="end_time" class="form-control" />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">추가</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
