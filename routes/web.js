@@ -64,12 +64,24 @@ router.post('/courses', ensureAuthenticated, async (req, res) => {
     return res.redirect('/courses');
   }
   try {
+    const parsedDay =
+      day_of_week === undefined || day_of_week === '' ? null : Number(day_of_week);
+    if (parsedDay !== null && (Number.isNaN(parsedDay) || parsedDay < 0 || parsedDay > 6)) {
+      req.flash('error', '요일은 0~6 사이의 숫자여야 합니다.');
+      return res.redirect('/courses');
+    }
+    const normalizedStart = start_time || null;
+    const normalizedEnd = end_time || null;
+    if (normalizedStart && normalizedEnd && normalizedStart > normalizedEnd) {
+      req.flash('error', '시작 시간이 종료 시간보다 늦을 수 없습니다.');
+      return res.redirect('/courses');
+    }
     await Course.createCourse(req.user.id, {
       name,
       professor,
-      day_of_week: day_of_week || null,
-      start_time: start_time || null,
-      end_time: end_time || null
+      day_of_week: parsedDay,
+      start_time: normalizedStart,
+      end_time: normalizedEnd
     });
     req.flash('success', '강의가 추가되었습니다.');
     res.redirect('/courses');
@@ -103,12 +115,34 @@ router.post('/tasks', ensureAuthenticated, async (req, res) => {
     return res.redirect('/tasks');
   }
   try {
+    const parsedPriority = Number(priority);
+    const normalizedPriority =
+      priority === undefined || priority === ''
+        ? 2
+        : !Number.isInteger(parsedPriority) || parsedPriority < 1 || parsedPriority > 3
+        ? 2
+        : parsedPriority;
+    let normalizedCourseId = null;
+    if (course_id) {
+      const parsedCourseId = Number(course_id);
+      const courseIdInvalid = Number.isNaN(parsedCourseId);
+      if (!courseIdInvalid) {
+        // 다른 사용자의 강의가 연결되지 않도록 소유권 확인
+        const isOwned = await Course.isCourseOwnedByUser(parsedCourseId, req.user.id);
+        if (isOwned) {
+          normalizedCourseId = parsedCourseId;
+        }
+      }
+      if (normalizedCourseId === null) {
+        req.flash('error', '유효하지 않은 강의로 연결하지 않았습니다.');
+      }
+    }
     await Task.createTask(req.user.id, {
       title,
       description,
       due_date: due_date || null,
-      priority: priority || 2,
-      course_id: course_id || null
+      priority: normalizedPriority,
+      course_id: normalizedCourseId
     });
     req.flash('success', '작업이 추가되었습니다.');
     res.redirect('/tasks');
@@ -123,8 +157,12 @@ router.post('/tasks', ensureAuthenticated, async (req, res) => {
 router.post('/tasks/:id/complete', ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   try {
-    await Task.updateTaskStatus(id, req.user.id, 'done');
-    req.flash('success', '작업을 완료했습니다.');
+    const affectedRows = await Task.updateTaskStatus(id, req.user.id, 'done');
+    if (affectedRows === 0) {
+      req.flash('error', '작업을 찾을 수 없습니다.');
+    } else {
+      req.flash('success', '작업을 완료했습니다.');
+    }
     res.redirect('/tasks');
   } catch (err) {
     console.error(err);

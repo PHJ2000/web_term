@@ -24,8 +24,18 @@ async function deleteCourse(id, userId) {
   await db.query('DELETE FROM courses WHERE id = ? AND user_id = ?', [id, userId]);
 }
 
+// 특정 강의가 사용자 소유인지 확인
+async function isCourseOwnedByUser(courseId, userId) {
+  const [rows] = await db.query('SELECT 1 FROM courses WHERE id = ? AND user_id = ?', [
+    courseId,
+    userId
+  ]);
+  return rows.length > 0;
+}
+
 module.exports = {
   getCoursesByUserId,
   createCourse,
-  deleteCourse
+  deleteCourse,
+  isCourseOwnedByUser
 };

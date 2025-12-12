@@ -51,16 +51,21 @@ async function createTask(userId, taskData) {
 
 // 상태 업데이트
 async function updateTaskStatus(id, userId, status) {
-  await db.query('UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?', [
+  const [result] = await db.query('UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?', [
     status,
     id,
     userId
   ]);
+  return result.affectedRows;
 }
 
 // 작업 삭제 (선택 기능)
 async function deleteTask(id, userId) {
-  await db.query('DELETE FROM tasks WHERE id = ? AND user_id = ?', [id, userId]);
+  const [result] = await db.query('DELETE FROM tasks WHERE id = ? AND user_id = ?', [
+    id,
+    userId
+  ]);
+  return result.affectedRows;
 }
 
 module.exports = {

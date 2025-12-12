@@ -1,6 +1,7 @@
 const express = require('express');
 const { ensureAuthenticatedApi } = require('../middlewares/auth');
 const Task = require('../models/Task');
+const Course = require('../models/Course');
 
 const router = express.Router();
 
@@ -53,7 +54,37 @@ router.get('/week', ensureAuthenticatedApi, async (req, res) => {
 // 새 작업을 생성하는 API
 router.post('/', ensureAuthenticatedApi, async (req, res) => {
   try {
-    const id = await Task.createTask(req.user.id, req.body);
+    const { priority, course_id } = req.body;
+    const parsedPriority = Number(priority);
+    const normalizedPriority =
+      priority === undefined || priority === ''
+        ? 2
+        : Number.isInteger(parsedPriority) && parsedPriority >= 1 && parsedPriority <= 3
+        ? parsedPriority
+        : null;
+    if (normalizedPriority === null) {
+      return res.status(400).json({ error: 'Invalid priority' });
+    }
+
+    let normalizedCourseId = null;
+    if (course_id !== undefined && course_id !== null && course_id !== '') {
+      const parsedCourseId = Number(course_id);
+      if (!Number.isInteger(parsedCourseId)) {
+        return res.status(400).json({ error: 'Invalid course_id' });
+      }
+      // 소유 강의인지 확인해 다른 사용자 강의를 막음
+      const isOwned = await Course.isCourseOwnedByUser(parsedCourseId, req.user.id);
+      if (!isOwned) {
+        return res.status(400).json({ error: 'Invalid course_id' });
+      }
+      normalizedCourseId = parsedCourseId;
+    }
+
+    const id = await Task.createTask(req.user.id, {
+      ...req.body,
+      priority: normalizedPriority,
+      course_id: normalizedCourseId
+    });
     res.status(201).json({ id });
   } catch (err) {
     console.error(err);
@@ -65,11 +96,14 @@ router.post('/', ensureAuthenticatedApi, async (req, res) => {
 router.patch('/:id', ensureAuthenticatedApi, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
-  if (!status) {
-    return res.status(400).json({ error: 'status 필드가 필요합니다.' });
+  if (status !== 'pending' && status !== 'done') {
+    return res.status(400).json({ error: 'Invalid status' });
   }
   try {
-    await Task.updateTaskStatus(id, req.user.id, status);
+    const affectedRows = await Task.updateTaskStatus(id, req.user.id, status);
+    if (affectedRows === 0) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -81,7 +115,10 @@ router.patch('/:id', ensureAuthenticatedApi, async (req, res) => {
 router.delete('/:id', ensureAuthenticatedApi, async (req, res) => {
   const { id } = req.params;
   try {
-    await Task.deleteTask(id, req.user.id);
+    const affectedRows = await Task.deleteTask(id, req.user.id);
+    if (affectedRows === 0) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);

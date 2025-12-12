@@ -9,6 +9,10 @@ const expressLayouts = require('express-ejs-layouts');
 // 환경변수 로드
 dotenv.config();
 
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET 환경변수를 설정해야 서버가 시작됩니다.');
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -23,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 세션 설정
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'secret',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false
   })
