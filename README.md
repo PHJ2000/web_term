@@ -1,4 +1,4 @@
-# 12312312 (Student Schedule & Task Manager)
+# (Student Schedule & Task Manager)
 
 Node.js + Express(CommonJS) 기반의 간단한 시간표/과목/할일 관리 웹앱입니다.  
 웹 UI와 함께 `/api/tasks` JSON API를 제공합니다.
