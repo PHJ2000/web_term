@@ -70,7 +70,7 @@ PORT=3001 npm start
 
 ### Course 생성
 
-- `day_of_week`는 0~6만 허용(일~토).  
+- `day_of_week`는 0-6만 허용(일~토).  
   범위 밖이면 생성 거부(웹은 flash 에러).
 - `start_time`과 `end_time`이 둘 다 있을 때  
   `start_time <= end_time` 이어야 하며, 아니면 거부.
